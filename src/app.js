@@ -1,19 +1,12 @@
 const express = require("express");
 const app = express();
+app.use(express.json());//app.use basically run on every request if no route is passed in this
 const User = require("./models/user.js")
-app.get("/signup",async (req,res)=>{
-    const data = {
-        "firstName":"Ragini",
-        "lastName":"Dwivedi",
-        "age":24,
-        "email":"ragini@gmail.com",
-        "password":"ragini123",
-        "gender":"female"
-    }
-    const user = await new User(data);
+app.post("/signup",async (req,res)=>{
+    // console.log(req.body);
+    const user = await new User(req.body);
     try {
        user.save();
-       console.log("test");
        res.send("Data entered successfully");
     } catch(error) {
       res.status(400).send("Something went wrong");
