@@ -1,0 +1,170 @@
+const express = require("express");
+const app = express();
+const bcrypt = require("bcrypt");
+const cookieParser  = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const {userAuth} = require("./middleware/auth.js");
+// convert json to js object and adding it in req.body
+
+app.use(express.json());
+
+//to get cookie in req
+app.use(cookieParser());
+
+app.use("/test", (req, res) => {
+    res.send("THis is first route");
+})
+
+const db = require("./config/database.js");
+
+const User = require("./model/user.js");
+const { validateSignData } = require("./utils/validation.js");
+// Api to signup
+
+app.post("/signup", async (req, res) => {
+
+    try {
+        //Validation of data 
+        validateSignData(req);
+        const { firstName, lastName, password, email, age, skills } = req.body;
+        //Encrypt the password
+        const hashPass = await bcrypt.hash(password, 10)
+
+        const newUser = new User({
+            firstName,
+            lastName,
+            password: hashPass,
+            email,
+            age,
+            skills
+        });
+        await newUser.save();
+        res.send("Added data successfully");
+    } catch (e) {
+        res.send(e.message);
+    }
+
+})
+
+//Login Api
+
+app.post("/login", async (req, res) => {
+    try {
+        const { emailId, password } = req.body;
+
+        const userData = await User.findOne({ email: emailId });
+        if (!userData) {
+            throw new Error("Invalid credentials");
+        }
+
+        const isPasswordValid = await userData.verifyPassword(password);
+       
+        if (isPasswordValid) {
+
+            // Create a JWT Token 
+            const token = await userData.getJWT();
+
+            // Add token to cookie 
+
+            res.cookie("token",token);
+            //Send response back to user 
+            res.send("Login Successfully")
+        } else {
+            res.status(400).send("Password is not correct");
+        }
+
+    } catch (e) {
+        res.status(400).send(e.message);
+    }
+})
+
+//Get profile 
+
+app.post("/profile",userAuth,async (req,res) =>{
+     
+    res.send(req.user);
+})
+
+
+
+//Get all the data of whole users 
+app.get("/users", async () => {
+    try {
+        const allUsers = await User.find({})
+
+    } catch (e) {
+
+    }
+
+})
+
+//Update Many Data 
+
+app.patch("/user/update", async (req, res) => {
+    try {
+        const data = await User.updateMany({ firstName: "test" }, { firstName: "testupdate", email: "testupdate@gmail.com" });
+        res.send("Data Updated Successfully");
+    } catch (e) {
+        res.status(500).send("Something went wrong while updating data");
+    }
+
+})
+
+// Update one data 
+
+app.patch("/user/:userId", async (req, res) => {
+    try {
+        const ALLOWED_PARAMS = ["firstName", "lastName", "age", "password", "skills"];
+
+        const data = req.body;
+        const isAllowed = Object.keys(data).every((k) => {
+            ALLOWED_PARAMS.includes(k)
+        })
+        if (!isAllowed) {
+            throw new Error("Update not allowed")
+        }
+        const userId = req.params?.userId;
+        await User.findByIdAndUpdate({ _id: userId }, data, {
+            returnDocument: "after",
+            runValidators: true
+        })
+        res.send("One User has been updated")
+    } catch (e) {
+        res.status(500).send(e.message)
+    }
+})
+
+//Delete all the user 
+
+app.patch("/user/delete", async (req, res) => {
+
+    try {
+        await User.deleteMany({});
+        res.status(200).send("All the User has been deleted");
+
+    } catch (e) {
+        res.status(400).send("Something went wrong in deleting user");
+    }
+
+})
+
+
+db()
+    .then(async () => {
+        console.log("DB connected");
+
+        const result = await User.syncIndexes();
+        // console.log("Sync result:", result);
+        // console.log(await User.collection.indexes());
+
+        app.listen(7777, () => {
+            console.log("Listening");
+        });
+    })
+    .catch((err) => {
+        console.log(err);
+    });
+
+app.listen(7777, () => {
+    console.log("listening");
+})
