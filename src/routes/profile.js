@@ -1,12 +1,13 @@
 const express = require("express");
-const router = express.Router();
+const profileRouter = express.Router();
 const {userAuth} = require("../middleware/auth.js");
 
 
 
 //Get profile 
 
-app.post("/profile",userAuth,async (req,res) =>{
+profileRouter.post("/profile",userAuth,async (req,res) =>{
      
     res.send(req.user);
 })
+module.exports = {profileRouter};

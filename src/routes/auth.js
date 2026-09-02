@@ -1,7 +1,8 @@
 const express = require("express");
 const route = express.Router();
-const { validateSignData } = require("./utils/validation.js");
+const { validateSignData } = require("../utils/validation.js");
 const bcrypt = require("bcrypt");
+const User = require("../models/user.js");
 
 
 route.post("/signup", async (req, res) => {
@@ -60,4 +61,11 @@ route.post("/login", async (req, res) => {
         res.status(400).send(e.message);
     }
 })
+
+route.post("/logout", async (req, res) => {
+    res.cookie("token",null);
+    res.send("Logout successfully");
+
+
+});
 module.exports = {route};
