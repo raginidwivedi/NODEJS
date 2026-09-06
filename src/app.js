@@ -22,6 +22,8 @@ const User = require("./models/user.js");
 const {connectionRouter} = require("./routes/connectionrequest.js")
 const {route} = require("./routes/auth.js");
 const {profileRouter} = require("./routes/profile.js");
+const {userRouter} = require("./routes/user.js");
+
 // const {connectionRouter} = require("./routes/connectionrequest.js");
 
 
@@ -30,6 +32,7 @@ const {profileRouter} = require("./routes/profile.js");
 app.use("/",connectionRouter);
 app.use("/",route);
 app.use("/",profileRouter);
+app.use("/",userRouter);
 
 
 

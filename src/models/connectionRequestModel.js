@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const connectionRequestSchema = mongoose.Schema({
     fromUserId:{
         type:mongoose.Schema.Types.ObjectId,
+        ref:"User",
         require:true
     },
     toUserId:{
@@ -20,7 +21,7 @@ connectionRequestSchema.pre("save",function (next) {
     if((connectionRequest.fromUserId).equals(connectionRequest.toUserId)) {
         throw new Error("Cannot send request to yourself");
     }
-    next();
+    // next();
 })
 const ConnectRequestModel = mongoose.model("connectionRequest",connectionRequestSchema);
 

@@ -19,7 +19,7 @@ connectionRouter.post("/request/send/:status/:toUserId", userAuth, async (req, r
          throw new Error("Invalid connection request");
       }
 
-      const connAlreadyExist = connectionRequestModel.findOne({
+      const connAlreadyExist = await connectionRequestModel.findOne({
          $or: [
             { fromUserId, toUserId }, { fromUserId: toUserId, toUserId: fromUserId }
          ]
